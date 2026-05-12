@@ -1,0 +1,16 @@
+{% extends 'base.html' %} 
+
+{% block title %}Login-Priority Tutor{% endblock %} 
+{% block content %}
+<form method="POST" action="{{ url_for('auth.login') }}">
+  <label>email</label>
+  <input type="email" name="email" required />
+
+  <label>Password</label>
+  <input type="password" name="password" required />
+</form>
+
+<p>
+  Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
+</p>
+{% endblock %}
