@@ -3,5 +3,35 @@
 {% block title %}Home - Priority Tutor{% endblock %}
 
 {% block content %}
+<style>
+  .parent {
+    display: flex;             /* Enable flexbox */
+    justify-content: center;   /* Center horizontally */
+    align-items: center;       /* Center vertically */
+    height: 100vh;             /* Use full viewport height */
+    background-color: #f0f0f0;
+  }
+
+  .empty-div {
+    width: 200px;              /* Explicit width */
+    height: 200px;             /* Explicit height */
+    background-color: blue;    /* Visible color */
+    border: 2px solid black;
+  }
+</style>
+
 <h1>Welcome to Priority Tutor</h1>
+
+
+<ul>
+
+    {% for video in videos %}
+    <div class="parent">
+        <div class="empty-div"></div>
+    </div>
+        <li>{{ video.title }} - {{ video.course_code }} by {{ video.tutor.user.full_name }}</li>
+    {% endfor %}
+
+</ul>
+
 {% endblock %}
