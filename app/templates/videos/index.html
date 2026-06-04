@@ -3,6 +3,21 @@
 {% block title %}Home - Priority Tutor{% endblock %}
 
 {% block content %}
+<form method="GET" action="{{ url_for('videos.index') }}">
+  <label>Search courses</label>
+  <input type="text" name="course"/>
+  <button>Submit</button>
+
+  {% if request.args.get('courses') %}
+    <p>Showing results for: {{ request.args.courses }}</p>
+    <a href="{{ url_for('videos.index') }}">Clear Search</a>
+  {% endif %}
+
+  {% if not videos %}
+    <p>No videos found for that course code.</p>
+  {% endif %}
+
+</form>
 <style>
   .parent {
     display: flex;             /* Enable flexbox */
@@ -29,7 +44,10 @@
     <div class="parent">
         <div class="empty-div"></div>
     </div>
-        <li>{{ video.title }} - {{ video.course_code }} by {{ video.tutor.user.full_name }}</li>
+        <li>
+          <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a>
+          {{ video.course_code }} by <a href="{{ url_for('tutors.profile', user_id=video.tutor.id) }}">{{ video.tutor.user.full_name }}</a>
+        </li>
     {% endfor %}
 
 </ul>

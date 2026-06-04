@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<h1>{{ video.title }}</h1>
+<p>{{ video.course_code }} — {{ video.tutor.user.full_name }}</p>
+<p>{{ video.description }}</p>
+
+<iframe 
+    width="800" 
+    height="450" 
+    src="https://www.youtube.com/embed/{{ VIDEO_ID }}" 
+    allowfullscreen>
+</iframe>
+{% endblock %}

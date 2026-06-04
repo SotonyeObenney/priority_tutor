@@ -2,11 +2,10 @@ from flask import render_template, redirect, url_for, flash, request
 from . import auth 
 from ..extensions import db
 from ..models import User, University
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 from flask_login import login_user
-from werkzeug.security import check_password_hash
-
 from flask_login import logout_user, current_user
 
 
@@ -94,7 +93,7 @@ def login():
             return redirect(url_for('auth.login'))
         
         login_user(user)
-        return redirect(url_for('videos.index'))
+        return redirect(url_for('main.home'))
     
     return render_template('auth/login.html')
 

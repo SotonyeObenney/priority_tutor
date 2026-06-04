@@ -13,10 +13,11 @@ def create_app():
     from .videos import videos as videos_blueprint
     from .tutors import tutors as tutors_blueprint
     from .admin import admin as admin_blueprint
+    from .main import main as main_blueprint
 
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(videos_blueprint, url_prefix='/videos')
     app.register_blueprint(tutors_blueprint, url_prefix='/tutors')
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
-
+    app.register_blueprint(main_blueprint)
     return app
