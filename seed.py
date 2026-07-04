@@ -10,16 +10,16 @@ app = create_app()
 with app.app_context():
 
     new_user = User(
-            email='emeka@email.com',
-            password_hash=generate_password_hash("123456"),
-            full_name='Emeka Jakes',
-            faculty='Computing',
-            department='Computer Science',
-            level=200,
+            email='admin@email.com',
+            password_hash=generate_password_hash("admin123"),
+            full_name='Admin',
+            faculty='Admin',
+            department='Admin',
+            level=300,
             university_id=1,
             is_student=True,
             is_tutor=True,
-            is_admin=False
+            is_admin=True
         )
     db.session.add(new_user)
     db.session.flush()
@@ -27,7 +27,7 @@ with app.app_context():
     new_tutor = TutorProfile(
         user_id = new_user.id,
         bio = "I like teaching",
-        courses = "COS 202, PHY 102, MTH 102"
+        courses = "COS 202, PHY 102, MTH 102, BUS 202"
     )
     db.session.add(new_tutor)
     db.session.flush()
@@ -52,7 +52,7 @@ with app.app_context():
     
     video_2 = Video(
         tutor_id = new_tutor.id,
-        title = "How to make fried foods",
+        title = "How to make chicken chips",
         description = "Learn to code",
         youtube_url = "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DAJbJYwEduso&ved=2ahUKEwjnmvPeu7iUAxVzQkEAHV06FxgQkPEHegQIGBAB&usg=AOvVaw2g_sI-9V8rGXiAqHByXJCb",
         course_code = "COS 202",

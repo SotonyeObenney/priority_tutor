@@ -5,7 +5,7 @@ from . import tutors
 from ..extensions import db
 
 
-@tutors.route('/tutors/<int:user_id>')
+@tutors.route('/<int:user_id>')
 @login_required
 def profile(user_id):
     tutor = TutorProfile.query.get_or_404(user_id)
@@ -15,12 +15,13 @@ def profile(user_id):
 
 
 #Not rendering on the Home page
-@tutors.route('/tutors/apply', methods=['GET', 'POST'])
+@tutors.route('/apply', methods=['GET', 'POST'])
 @login_required
 def apply():
     if request.method == "POST":
         bio = request.form.get('bio')
         courses = request.form.get('courses')
+        user_id = current_user.id
 
         tutor = TutorProfile.query.filter_by(user_id=user_id).first()
         if tutor:
@@ -35,5 +36,5 @@ def apply():
         
         db.session.add(new_tutor)
         db.session.commit()
-        return redirect(url_for('tutors.profile', user_id=current_user.id))
+        return redirect(url_for('main.home'))
     return render_template("tutors/apply.html")

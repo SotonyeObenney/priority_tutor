@@ -9,7 +9,7 @@
 <h4> {{ tutor.bio }} {{ tutor.courses }}</h4>
 <ul>
 {% for video in videos %}
-   <li> <a href="{{ url_for('tutors.profile', user_id=tutor.user_id) }}">{{ video.title }}</a></li>
+   <li> <a href="{{ url_for('videos.show_video', video_id=tutor.id) }}">{{ video.title }}</a></li>
 {% endfor %}
 </ul>
 
