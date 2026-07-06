@@ -10,16 +10,16 @@ app = create_app()
 with app.app_context():
 
     new_user = User(
-            email='admin@email.com',
-            password_hash=generate_password_hash("admin123"),
-            full_name='Admin',
-            faculty='Admin',
-            department='Admin',
+            email='tutor1@email.com',
+            password_hash=generate_password_hash("123456"),
+            full_name='Tutor 1',
+            faculty='Computing',
+            department='Computer Science',
             level=300,
             university_id=1,
             is_student=True,
             is_tutor=True,
-            is_admin=True
+            is_admin=False
         )
     db.session.add(new_user)
     db.session.flush()
@@ -34,7 +34,7 @@ with app.app_context():
 
     video = Video(
         tutor_id = new_tutor.id,
-        title = "How to make fried foods",
+        title = "Test video for tutor profile 11",
         description = "Learn to code",
         youtube_url = "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DAJbJYwEduso&ved=2ahUKEwjnmvPeu7iUAxVzQkEAHV06FxgQkPEHegQIGBAB&usg=AOvVaw2g_sI-9V8rGXiAqHByXJCb",
         course_code = "COS 202",
@@ -43,7 +43,7 @@ with app.app_context():
      
     video_1 = Video(
         tutor_id = new_tutor.id,
-        title = "How to make fried foods",
+        title = "Test video for tutor profile 11",
         description = "Learn to code",
         youtube_url = "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DAJbJYwEduso&ved=2ahUKEwjnmvPeu7iUAxVzQkEAHV06FxgQkPEHegQIGBAB&usg=AOvVaw2g_sI-9V8rGXiAqHByXJCb",
         course_code = "COS 202",

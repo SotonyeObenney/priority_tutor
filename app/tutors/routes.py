@@ -8,9 +8,9 @@ from ..extensions import db
 @tutors.route('/<int:user_id>')
 @login_required
 def profile(user_id):
-    tutor = TutorProfile.query.get_or_404(user_id)
-    tutor_videos = tutor.videos
-    print(tutor_videos)
+    user = User.query.get_or_404(user_id)
+    tutor = user.tutor_profile
+    tutor_videos = user.tutor_profile.videos
     return render_template('tutors/index.html', videos=tutor_videos, tutor=tutor)
 
 
@@ -38,3 +38,5 @@ def apply():
         db.session.commit()
         return redirect(url_for('main.home'))
     return render_template("tutors/apply.html")
+
+

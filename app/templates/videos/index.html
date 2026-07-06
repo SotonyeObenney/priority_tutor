@@ -46,7 +46,7 @@
     </div>
         <li>
           <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a>
-          {{ video.course_code }} by <a href="{{ url_for('tutors.profile', user_id=video.tutor.id) }}">{{ video.tutor.user.full_name }}</a>
+          {{ video.course_code }} by <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a>
         </li>
     {% endfor %}
 
