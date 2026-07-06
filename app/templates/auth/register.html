@@ -1,0 +1,44 @@
+{% extends 'base.html' %} 
+{% block title %}Register - Priority Tutor{% endblock %} 
+
+{% block content %}
+<form method="POST" action="{{ url_for('auth.register') }}">
+  <label>Full Name</label>
+  <input type="text" name="full_name" required />
+
+  <label>Email</label>
+  <input type="email" name="email" required />
+
+  <label>Password</label>
+  <input type="password" name="password" required />
+
+  <label>Confirm Password</label>
+  <input type="password" name="confirm_password" required />
+  
+  <label>Universities</label>
+  <select name="university_id">
+    {% for university in universities %}
+      <option value="{{ university.id }}">{{ university.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Faculty</label>
+  <input type="text" name="faculty" required />
+
+  <label>Department</label>
+  <input type="text" name="department" required />
+
+  <label>Level</label>
+  <select name="level">
+    <option value="100">100</option>
+    <option value="200">200</option>
+    <option value="300">300</option>
+    <option value="400">400</option>
+    <option value="500">500</option>
+  </select>
+
+  <button type="submit">Register</button>
+</form>
+
+<p>Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+{% endblock %}

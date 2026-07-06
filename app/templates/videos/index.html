@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Priority Tutor{% endblock %}
+
+{% block content %}
+<form method="GET" action="{{ url_for('videos.index') }}">
+  <label>Search courses</label>
+  <input type="text" name="course"/>
+  <button>Submit</button>
+
+  {% if request.args.get('courses') %}
+    <p>Showing results for: {{ request.args.courses }}</p>
+    <a href="{{ url_for('videos.index') }}">Clear Search</a>
+  {% endif %}
+
+  {% if not videos %}
+    <p>No videos found for that course code.</p>
+  {% endif %}
+
+</form>
+<style>
+  .parent {
+    display: flex;             /* Enable flexbox */
+    justify-content: center;   /* Center horizontally */
+    align-items: center;       /* Center vertically */
+    height: 100vh;             /* Use full viewport height */
+    background-color: #f0f0f0;
+  }
+
+  .empty-div {
+    width: 200px;              /* Explicit width */
+    height: 200px;             /* Explicit height */
+    background-color: blue;    /* Visible color */
+    border: 2px solid black;
+  }
+</style>
+
+<h1>Welcome to Priority Tutor</h1>
+
+
+<ul>
+    {% if not videos %}
+      <h2>No videos Yet</h2>
+    {% endif %}
+    {% for video in videos %}
+    <div class="parent">
+        <div class="empty-div"></div>
+    </div>
+        <li>
+          <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a>
+          {{ video.course_code }} by <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a>
+        </li>
+    {% endfor %}
+
+</ul>
+
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html'%}
+
+<!-- I'm not using WTF Forms -->
+{% block content %}
+
+<form method="POST" action="{{ url_for('tutors.apply') }}">
+    <label>Bio</label>
+    <input type="textarea" name="bio">
+
+    <label>Courses</label>
+    <input type="text" name="courses">
+
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

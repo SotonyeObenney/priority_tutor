@@ -1,0 +1,13 @@
+{% extends 'base.html' %} 
+
+{% block title %}Home - Priority Tutor{% endblock %} 
+{% block content %}
+<h1>Home Page Priority Tutor</h1>
+<!-- If the person is already a tutor the html should change to reflect it and only show view tutor profile and vise versa -->
+
+<a href="{{ url_for('tutors.profile', user_id=current_user.id) }}">View Tutor Profile</a>
+<a href="{{ url_for('tutors.apply') }}">Apply as a Tutor</a>
+<br>
+<a href="{{ url_for('videos.index') }}">View Courses</a>
+
+{% endblock %}

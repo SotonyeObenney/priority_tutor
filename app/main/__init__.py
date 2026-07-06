@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-videos = Blueprint('videos', __name__)
+main = Blueprint('main', __name__)
 
 from . import routes

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Admin - Priorit profile{% endblock %}
+{% block content %}
+<h1>Admin</h1>
+<ol>
+    {% if not applications %}
+        <h2>No Profiles to approve yet</h2>
+    {% endif %}
+    {% for profile in applications %}
+    <li>{{ profile.user.full_name }} {{ profile.bio}} {{ profile.courses }} 
+    <form method="POST" action="{{ url_for('admin.approve', tutor_id=profile.id) }}">
+        <button style="color:green">APPROVE</button>
+    </form>
+
+    <form method="POST" action="{{ url_for('admin.reject', tutor_id=profile.id) }}">
+        <button style="color:red">REJECT</button>
+    </form>
+    </li>
+    {% endfor %}
+</ol>
+
+{% endblock %}

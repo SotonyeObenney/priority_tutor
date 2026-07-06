@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Priority Tutor{% endblock %}
+
+{% block content %}
+<h1>Welcome to Priority Tutor</h1>
+<h2>{{ tutor.user.full_name }}</h2>
+<h3> {{ tutor.user.department }} {{ tutor.user.level }} Level</h3>
+<h4> {{ tutor.bio }} {{ tutor.courses }}</h4>
+<h5>avg_rating = {{ tutor.avg_rating }}
+total_revies = {{ tutor.total_reviews}}</h5>
+<ul>
+{% for video in videos %}
+   <li> <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}
