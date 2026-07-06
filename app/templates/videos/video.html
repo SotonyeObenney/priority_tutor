@@ -15,6 +15,9 @@
 </iframe>
 
 <h3>Reviews</h3>
+{% if not video.reviews %}
+    <h2>No videos Yet</h2>
+{% endif %}
 <ul>{% for review in video.reviews %}
     <li>{{ review.comment }}</li>
     {% endfor %}

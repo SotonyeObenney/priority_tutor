@@ -39,7 +39,9 @@
 
 
 <ul>
-
+    {% if not videos %}
+      <h2>No videos Yet</h2>
+    {% endif %}
     {% for video in videos %}
     <div class="parent">
         <div class="empty-div"></div>
