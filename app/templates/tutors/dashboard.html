@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if not ALL_VIDEOS %}
+  <h1>You have not uploaded any videos</h1>
+  <a href="{{ url_for('videos.upload_video') }}">click Here to upload a video</a>
+{% endif %}
+
+
+<h1>Total Earnings : ₦{{AMOUNT_PAID}}</h1>
+<h2>Total Views*: {{TOTAL_VIEWS}}</h2>
+<p>Total Reviews: {{TOTAL_REVIEWS}}</p>
+<p>Average rating: {{ current_user.tutor_profile.avg_rating }}</p>
+
+<br><br>
+
+
+<table style="border: 1px solid black">
+<tr>
+  <th>Title</th>
+  <th>Views</th>
+  <th>Reviews</th>
+  <th>Earnings</th>
+</tr>
+{% for video in ALL_VIDEOS %}
+<tr>
+  <th>{{ video.title }}</th>
+  <th>{{ video.view_count }}</th>
+  <th>{{ video.reviews | length }}</th>
+  <th>{{  video.purchase | map(attribute='amount_paid') | sum }}</th>
+</tr>
+{% endfor %}
+</table>
+<p>  <a href="{{ url_for('videos.upload_video') }}">click Here to upload more videos</a></p>
+
+
+{% endblock %}

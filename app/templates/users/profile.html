@@ -1,0 +1,36 @@
+<!-- Display name, university, faculty, department, level
+List all reviews the student has left with the video title and rating -->
+
+{% extends 'base.html' %}
+{% block content %}
+
+{% if not current_user.avatar_filename %}
+
+  <h2>You have no profile picture</h2>
+  
+ <a href="{{ url_for('users.upload_avatar') }}">Upload a Profile picture</a> 
+
+{% else %}
+  <img src="{{ url_for('static', filename='avatars/' + current_user.avatar_filename) }}" width="450" height="300">
+
+{% endif %}
+
+<h3>{{ current_user.id  }}</h3>
+<h3>{{ current_user.full_name  }}</h3>
+<h3>{{ current_user.university.name }}</h3>
+<h3>{{ current_user.faculty }}</h3>
+<h3>{{ current_user.department }}</h3>
+<h3>{{ current_user.level}}</h3>
+
+<br>
+<br>
+<h2>Reviews</h2>
+{% if reviews %}
+    {% for review in reviews %}
+        <h4>{{ review.video.title }}</h4>
+        <p>{{ review.comment }}</p>
+    {% endfor %}
+{% else %}
+    <h4>You have no reviews</h4>
+{% endif %}
+{% endblock %}

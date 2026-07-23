@@ -4,15 +4,20 @@
 {% block content %}
 
 <h1>{{ video.title }}</h1>
-<p>{{ video.course_code }} — {{ video.tutor.user.full_name }}</p>
+<p>{{ video.course_code }} — <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a></p>
 <p>{{ video.description }}</p>
+<form action="{{ url_for('videos.buy', video_id=video.id) }}" method="POST">
+    <button type="submit" >Buy</button>
+</form>
 
+{% if not VIDEO_ID == 0 %}
 <iframe 
     width="800" 
     height="450" 
     src="https://www.youtube.com/embed/{{ VIDEO_ID }}" 
     allowfullscreen>
 </iframe>
+{% endif %}
 
 <h3>Reviews</h3>
 {% if not video.reviews %}

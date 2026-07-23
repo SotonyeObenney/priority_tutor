@@ -4,15 +4,37 @@
 
 {% block content %}
 <h1>Welcome to Priority Tutor</h1>
-<h2>{{ tutor.user.full_name }}</h2>
-<h3> {{ tutor.user.department }} {{ tutor.user.level }} Level</h3>
-<h4> {{ tutor.bio }} {{ tutor.courses }}</h4>
-<h5>avg_rating = {{ tutor.avg_rating }}
-total_revies = {{ tutor.total_reviews}}</h5>
+{% if tutor.user.avatar_filename %}
+  <img src="{{ url_for('static', filename='avatars/' + tutor.user.avatar_filename) }}" width="450" height="300">
+{% endif %}
+
+{% if tutor.is_approved %}
+  <h2>{{ tutor.user.full_name }}<span>✅</span></h2>
+{% else %}
+  <h2>{{ tutor.user.full_name }}<span></span></h2> 
+{% endif %}
+
+
+<h3>University - {{ tutor.user.university.name }}</h3>
+<h3>Department - {{ tutor.user.department }} </h3>
+<h3>Level - {{ tutor.user.level }} Level</h3>
+
+<h3>Bio</h3>
+<p> {{ tutor.bio }} {{ tutor.courses }}</p>
+<br>
+<h3>Ratings and Reviews</h3>
+
+
+
+<p>{% set floor_rating = tutor.avg_rating | round(0, 'floor') %}</p>
+<p>avg_rating = {{ tutor.avg_rating }}</p><span>{{"⭐️" * floor_rating | int }}</span>
+<p>total_revies = {{ tutor.total_reviews}}</p>
+
+<h3>Videos</h3>
 <ul>
 {% for video in videos %}
    <li> <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a></li>
 {% endfor %}
 </ul>
-
+<!-- university -->
 {% endblock %}

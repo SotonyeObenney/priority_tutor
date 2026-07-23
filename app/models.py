@@ -24,13 +24,16 @@ class User(db.Model, UserMixin):
     department = db.Column(db.String(100), nullable=False)
     level = db.Column(db.Integer, nullable=False)
     university_id = db.Column(db.Integer, db.ForeignKey('universities.id'), nullable=False)
+    avatar_filename = db.Column(db.String(100), nullable=True)
 
     is_student = db.Column(db.Boolean, default=True)
     is_tutor = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
 
     tutor_profile = db.relationship('TutorProfile', backref='user', uselist=False)
+
     reviews = db.relationship('Review', backref='student', lazy=True)
+    purchase = db.relationship('Purchase', backref='student', lazy=True)
 
 
 class TutorProfile(db.Model):
@@ -61,6 +64,7 @@ class Video(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
 
     reviews = db.relationship('Review', backref='video', lazy=True)
+    purchase = db.relationship('Purchase', backref='video', lazy=True)
 
 class Review(db.Model):
     __tablename__ = 'reviews'
@@ -77,6 +81,20 @@ class Review(db.Model):
         )
     
 
+class Purchase(db.Model):
+    __tablename__ = 'purchases'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('videos.id'), nullable=False)
+    amount_paid = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
+    paystack_reference = db.Column(db.String(100), unique=True, nullable=False)
+    __table_args__ = (
+        db.UniqueConstraint('video_id', 'student_id', name='unique_video_payment'),
+        )    
+
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

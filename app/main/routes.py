@@ -15,7 +15,5 @@ def home():
         print(current_user.is_authenticated)
         return render_template('main/home.html')
     
-    #Try and fix the whole mess of apply
-    #Fix the navbar to have everything at a glance
-    #Fix the apply functionality
+
     #Work on the base.html template and include the navbar in the template.
