@@ -17,16 +17,24 @@ def index():
     return render_template('admin/index.html', applications=applications)
 
 @admin.route('/approve/<int:tutor_id>', methods=['POST'])
+@login_required
 def approve(tutor_id):
-    profile = db.session.get(TutorProfile, tutor_id)
-    profile.user.is_tutor = True
-    profile.is_approved = True
-    db.session.commit()
-    return redirect(url_for('admin.index'))
+    if not current_user.is_admin:
+      abort(403)
+    else:
+      profile = db.session.get(TutorProfile, tutor_id)
+      profile.user.is_tutor = True
+      profile.is_approved = True
+      db.session.commit()
+      return redirect(url_for('admin.index'))
 
 @admin.route('/reject/<int:tutor_id>', methods=['POST'])
+@login_required
 def reject(tutor_id):
-    profile = db.session.get(TutorProfile, tutor_id)
-    db.session.delete(profile)
-    db.session.commit()
-    return redirect(url_for('admin.index'))
+    if not current_user.is_admin:
+      abort(403)
+    else:
+      profile = db.session.get(TutorProfile, tutor_id)
+      db.session.delete(profile)
+      db.session.commit()
+      return redirect(url_for('admin.index'))

@@ -4,6 +4,15 @@ from ..models import TutorProfile, User, Purchase
 from . import tutors
 from ..extensions import db
 
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, EmailField, PasswordField
+from wtforms.validators import DataRequired #You can also add some length of characters
+
+
+class ApplyForm(FlaskForm):
+   bio = StringField('Bio', validators=[DataRequired()])
+   courses = StringField('Courses', validators=[DataRequired()])
+
 
 @tutors.route('/<int:user_id>')
 @login_required
@@ -18,6 +27,7 @@ def profile(user_id):
 @tutors.route('/apply', methods=['GET', 'POST'])
 @login_required
 def apply():
+    apply_form = ApplyForm()
     if request.method == "POST":
         bio = request.form.get('bio')
         courses = request.form.get('courses')
@@ -26,18 +36,18 @@ def apply():
         tutor = TutorProfile.query.filter_by(user_id=user_id).first()
         if tutor:
             flash("You are already registered as a tutor")
-            return render_template("tutors/apply.html")
-        
-        new_tutor = TutorProfile(
-            bio=bio,
-            courses=courses,
-            user_id=current_user.id
-            )
-        
-        db.session.add(new_tutor)
-        db.session.commit()
-        return redirect(url_for('main.home'))
-    return render_template("tutors/apply.html")
+            return render_template("tutors/apply.html", form=apply_form)
+        if apply_form.validate_on_submit():
+          new_tutor = TutorProfile(
+              bio=bio,
+              courses=courses,
+              user_id=current_user.id
+              )
+          
+          db.session.add(new_tutor)
+          db.session.commit()
+          return redirect(url_for('main.home'))
+    return render_template("tutors/apply.html", form=apply_form)
 
 
 @tutors.route('/dashboard')
@@ -45,7 +55,6 @@ def apply():
 def dashboard():
     if current_user.is_tutor:
       all_videos = current_user.tutor_profile.videos
-      
       #Total earnings
       amount_paid = 0
       for video in all_videos:

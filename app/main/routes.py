@@ -11,8 +11,6 @@ def home():
     if not current_user.is_authenticated:
         return redirect(url_for('auth.login'))
     else:
-        print("Hello World")
-        print(current_user.is_authenticated)
         return render_template('main/home.html')
     
 

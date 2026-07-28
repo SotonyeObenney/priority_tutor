@@ -3,26 +3,26 @@
 
 <h1>UPLOAD A VIDEO</h1>
 <form method="POST"  action="{{ url_for('videos.upload_video') }}">
+    {{ form.csrf_token }}
 
-    <label>Title</label>
-    <input type="text" name="title">
+    {{ form.title.label }} {{ form.title }}
 
-    <label>Course Code</label>
-    <input type="text" name="course_code">
+    {{ form.course_code.label }} {{ form.course_code }}
 
-    <label>Description</label>
-    <input type="textarea" name="description">
+    {{ form.description.label }} {{ form.description }}
 
-    <label>YouTube URL</label>
-    <input type="text" name="youtube_url">
+    {{ form.youtube_url.label }} {{ form.youtube_url }}
 
 
     <label>Is free</label>
     <input type="checkbox" name="is_free" value="True">
+    
+
+    {{ form.price.label }} {{ form.price }}
 
 
-    <label>Price</label>
-    <input type="number" step="any" name="price" value="0">
+
+    
 
     <button type="submit">Submit</button>
 </form>

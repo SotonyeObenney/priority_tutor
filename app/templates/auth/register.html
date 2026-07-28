@@ -3,18 +3,16 @@
 
 {% block content %}
 <form method="POST" action="{{ url_for('auth.register') }}">
-  <label>Full Name</label>
-  <input type="text" name="full_name" required />
+  {{ form.csrf_token }}
+  {{ form.full_name.label }} {{ form.full_name }}
+<br>
+  {{ form.email.label }} {{ form.email }}
+<br>
+  {{ form.password.label }} {{ form.password }}
+<br>
+  {{ form.confirm_password.label }} {{ form.confirm_password }}
 
-  <label>Email</label>
-  <input type="email" name="email" required />
-
-  <label>Password</label>
-  <input type="password" name="password" required />
-
-  <label>Confirm Password</label>
-  <input type="password" name="confirm_password" required />
-  
+  <br>
   <label>Universities</label>
   <select name="university_id">
     {% for university in universities %}
@@ -22,12 +20,12 @@
     {% endfor %}
   </select>
 
-  <label>Faculty</label>
-  <input type="text" name="faculty" required />
+  {{ form.faculty.label }} {{ form.faculty }}
+  <br>
 
-  <label>Department</label>
+{{ form.department.label }} {{ form.departmnet }}
   <input type="text" name="department" required />
-
+  <br>
   <label>Level</label>
   <select name="level">
     <option value="100">100</option>
