@@ -100,7 +100,6 @@ def upload_video():
                   course_code = course_code,
                   description = description,
                   youtube_url = youtube_url,
-                  created_at = dt.now(),
                   is_free = is_free,
                   price = price
                   
@@ -135,9 +134,7 @@ def review(video_id):
               video_id = video_id,
               student_id = current_user.id,
               rating = int(rating),
-              comment = comment,
-              created_at = dt.now()
-          
+              comment = comment          
           )
       db.session.add(new_review)
       db.session.flush()
@@ -209,7 +206,6 @@ def payment_callback():
             video_id=video_id,
             amount_paid=amount_paid,
             paystack_reference=reference,
-            created_at=dt.now()
         )
         db.session.add(new_purchase)
         db.session.commit()
@@ -229,3 +225,4 @@ def payment_callback():
 # Updating description and prices of videos
 # fixing the url for youtube not to break
 # Fixing the buy button showing for a free video
+# Webhooks
