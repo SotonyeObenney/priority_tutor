@@ -62,7 +62,7 @@ def show_video(video_id):
         if not current_user.id == current_video.tutor.user_id:
           current_video.view_count += 1
           db.session.commit()
-        return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, video=current_video)
+        return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, video=current_video, review_form=review_form)
     if Purchase.query.filter_by(student_id=current_user.id, video_id=video_id).first():
         flash('you bought the video you can view it')
         if not current_user.id == current_video.tutor.user.id:
@@ -116,7 +116,7 @@ def upload_video():
 @login_required
 def review(video_id):
     review_form = ReviewForm()
-    video = Video.query.get(video_id)
+    video = Video.query.get_or_404(video_id)
     comment = request.form.get('comment')
     rating = request.form.get('rating')
     #Self check for video review
@@ -152,7 +152,7 @@ def review(video_id):
 
       return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
 
-@videos.route('<int:video_id>/buy', methods=["POST"])
+@videos.route('/buy/<int:video_id>', methods=["POST"])
 @login_required
 def buy(video_id):
     buy_form = BuyForm()
@@ -201,6 +201,12 @@ def payment_callback():
         amount_paid = data['data']['amount'] / 100
         video_id = data['data']['metadata']['video_id']
 
+        existing = Purchase.query.filter_by(student_id=current_user.id, video_id=video_id).first()
+        if existing:
+            flash('You already have access to this video.')
+            return redirect(url_for('videos.show_video', video_id=video_id))
+
+        
         new_purchase = Purchase(
             student_id=current_user.id,
             video_id=video_id,

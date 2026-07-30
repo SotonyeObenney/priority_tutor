@@ -37,8 +37,6 @@ def profile():
 
     return render_template("users/profile.html", current_user=current_user, reviews=reviews)
 
-class MyForm(FlaskForm):
-    name = StringField('name', validators=[DataRequired()])
     
 @users.route('/upload_avatar', methods=["GET", "POST"])
 @login_required

@@ -7,3 +7,4 @@ class Config:
     PAYSTACK_API_TEST_PKEY = os.environ.get("PAYSTACK_API_TEST_PKEY")
     PAYSTACK_API_TEST_SKEY = os.environ.get("PAYSTACK_API_TEST_SKEY")
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'app/static/avatars')
+    WTF_CSRF_ENABLED = False

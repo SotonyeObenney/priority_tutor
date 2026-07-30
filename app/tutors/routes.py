@@ -19,6 +19,8 @@ class ApplyForm(FlaskForm):
 def profile(user_id):
     user = User.query.get_or_404(user_id)
     tutor = user.tutor_profile
+    if tutor == None:
+      return render_template("error.html")
     tutor_videos = user.tutor_profile.videos
     return render_template('tutors/index.html', videos=tutor_videos, tutor=tutor)
 

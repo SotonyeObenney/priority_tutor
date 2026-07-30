@@ -60,6 +60,13 @@ def register():
             return redirect(url_for('auth.register'))
 
         if register_form.validate_on_submit():
+
+          try:
+              university_id = int(university_id)
+              level = int(level)
+          except (TypeError, ValueError):
+            flash('Level and university must be valid selections.')
+            return redirect(url_for('auth.register'))
         
           new_user = User(
               email=email,
@@ -67,8 +74,8 @@ def register():
               full_name=full_name,
               faculty=faculty,
               department=department,
-              level=int(level),
-              university_id=int(university_id),
+              level=level,
+              university_id=university_id,
               is_student=True,
               is_tutor=False,
               is_admin=False
