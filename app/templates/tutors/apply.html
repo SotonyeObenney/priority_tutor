@@ -4,11 +4,10 @@
 {% block content %}
 
 <form method="POST" action="{{ url_for('tutors.apply') }}">
-    <label>Bio</label>
-    <input type="textarea" name="bio">
-
-    <label>Courses</label>
-    <input type="text" name="courses">
+    {{ form.csrf_token }}
+    {{ form.bio.label }} {{ form.bio }}
+  <br>
+    {{ form.courses.label }} {{ form.courses }}
 
     <button type="submit">Submit</button>
 </form>

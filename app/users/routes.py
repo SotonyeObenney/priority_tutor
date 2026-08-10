@@ -1,0 +1,52 @@
+from flask_login import login_required, current_user
+from flask import render_template, url_for, redirect, request, current_app, flash
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import DataRequired
+from flask_wtf.file import FileField, FileAllowed, FileRequired
+from ..models import TutorProfile, User
+from flask import Blueprint
+from ..extensions import db
+
+#for file handling
+import uuid
+import os
+from werkzeug.utils import secure_filename
+
+
+from . import users
+
+class AvatarForm(FlaskForm):
+    avatar = FileField('avatar', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only')])
+
+
+@users.route('/')
+@login_required
+def profile():
+    print()
+
+    #Can put edit buttons
+    reviews = current_user.reviews
+    return render_template("users/profile.html", current_user=current_user, reviews=reviews)
+
+    
+@users.route('/upload_avatar', methods=["GET", "POST"])
+@login_required
+def upload_avatar():
+    avatar_form = AvatarForm()
+    file = request.files.get('avatar')
+    if avatar_form.validate_on_submit():
+      if file:
+          extension = file.filename.rsplit('.',1)[1].lower()
+          filename = uuid.uuid4().hex + '.' + extension
+          file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+          current_user.avatar_filename = filename
+          print(current_user.avatar_filename)
+          db.session.commit()
+          flash("Upload Successful")
+      else:
+          flash(avatar_form.errors)
+    return render_template('users/upload.html', form=avatar_form)
+
+
+#A way to delete files after they have been re-uploaded to avoid disc usage

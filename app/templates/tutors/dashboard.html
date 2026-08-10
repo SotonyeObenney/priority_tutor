@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Recent Activity -->
+<!-- Show the last 10 reviews across all the tutor's videos
+Display the student name, rating, comment, video title, and date
+Order by created_at descending
+ -->
+
+{% if not ALL_VIDEOS %}
+  <h1>You have not uploaded any videos</h1>
+  <a href="{{ url_for('videos.upload_video') }}">click Here to upload a video</a>
+{% endif %}
+
+
+
+
+<h1>Total Earnings : ₦{{AMOUNT_PAID}}</h1>
+<h2>Total Views*: {{TOTAL_VIEWS}}</h2>
+<p>Total Reviews: {{TOTAL_REVIEWS}}</p>
+<p>Average rating: {{ current_user.tutor_profile.avg_rating }}</p>
+
+<br><br>
+
+
+<table style="border: 1px solid black">
+<tr>
+  <th>Title</th>
+  <th>Views</th>
+  <th>Reviews</th>
+  <th>Earnings</th>
+</tr>
+{% for video in ALL_VIDEOS %}
+<tr>
+  <th>{{ video.title }}</th>
+  <th>{{ video.view_count }}</th>
+  <th>{{ video.reviews | length }}</th>
+  <th>{{  video.purchase | map(attribute='amount_paid') | sum }}</th>
+</tr>
+{% endfor %}
+</table>
+<p>  <a href="{{ url_for('videos.upload_video') }}">click Here to upload more videos</a></p>
+
+
+<p>Recent Activity</p>
+{% for video in ALL_VIDEOS %}
+  {% set reviews_count = video.reviews | length %}
+  {% if reviews_count >= 10 %}
+    {% set max_index = 10 %}
+  {% else %}
+    {% set max_index = reviews_count %}
+  {% endif %}
+  <h3>{{ video['title'] }}</h3>
+  {% for n in range(0, max_index) %}
+    <p>{{ n +1 }}. Review - {{ video.reviews[n]['comment'] }}</p>
+    <p>Name - {{ video.reviews[n].student['full_name'] }}</p>
+    <p>date - {{ video.reviews[n]['created_at'] }}</p>
+
+  {% endfor %}
+{% endfor %}
+
+
+{% endblock %}

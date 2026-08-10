@@ -3,27 +3,37 @@ from . import auth
 from ..extensions import db
 from ..models import User, University
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, EmailField, PasswordField
+from wtforms.validators import DataRequired #You can also add some length of characters
 
 from flask_login import login_user
 from flask_login import logout_user, current_user
 
 
+# WTF-Forms
+
+class LoginForm(FlaskForm):
+  email = EmailField('email', validators=[DataRequired()])
+  password = PasswordField('password')
+
+class RegisterForm(FlaskForm):
+    full_name = StringField('Full Name', validators=[DataRequired()])
+    email = EmailField('Email', validators=[DataRequired()])
+    password = PasswordField('Password')
+    confirm_password = PasswordField('Confirm Password')
+    faculty = StringField('Faculty', validators=[DataRequired()])
+    department = StringField('Department', validators=[DataRequired()])
+
+    
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
-    # LOGIC
-    # GET request → show the form
-    # POST request →
-    # grab all form fields
-    # check fields aren't empty → flash and redirect if so
-    # check passwords match → flash and redirect if so
-    # check email not already taken → flash and redirect if so
-    # create user, commit, redirect to login
-    # at the top of register() and login(), before anything else
+
     if current_user.is_authenticated:
         return redirect(url_for('videos.index'))
     
+    register_form = RegisterForm()
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -49,38 +59,49 @@ def register():
             flash('Email already registered.')
             return redirect(url_for('auth.register'))
 
-        
-        new_user = User(
-            email=email,
-            password_hash=generate_password_hash(password),
-            full_name=full_name,
-            faculty=faculty,
-            department=department,
-            level=int(level),
-            university_id=int(university_id),
-            is_student=True,
-            is_tutor=False,
-            is_admin=False
-        )
-    
+        if register_form.validate_on_submit():
 
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('auth.login'))
+          try:
+              university_id = int(university_id)
+              level = int(level)
+          except (TypeError, ValueError):
+            flash('Level and university must be valid selections.')
+            return redirect(url_for('auth.register'))
+        
+          new_user = User(
+              email=email,
+              password_hash=generate_password_hash(password),
+              full_name=full_name,
+              faculty=faculty,
+              department=department,
+              level=level,
+              university_id=university_id,
+              is_student=True,
+              is_tutor=False,
+              is_admin=False
+          )
+      
+
+          db.session.add(new_user)
+          db.session.commit()
+          return redirect(url_for('auth.login'))
 
     universities = University.query.all()
-    return render_template('auth/register.html', universities=universities)
+    return render_template('auth/register.html', universities=universities, form=register_form)
 
+
+    
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("videos.index"))
 
+
+    login_form = LoginForm()
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-
         user = User.query.filter_by(email=email).first()
         
         
@@ -91,11 +112,13 @@ def login():
         if not check_password_hash(user.password_hash, password):
             flash('Incorrect password. Please try again')
             return redirect(url_for('auth.login'))
-        
-        login_user(user)
-        return redirect(url_for('main.home'))
+
+        print(login_form.validate_on_submit())
+        if login_form.validate_on_submit():
+          login_user(user)
+          return redirect(url_for('main.home'))
     
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', form=login_form)
 
 
 @auth.route('/logout')

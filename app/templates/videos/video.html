@@ -3,20 +3,31 @@
 
 {% block content %}
 
-<h1>{{ video.title }}</h1>
-<p>{{ video.course_code }} — {{ video.tutor.user.full_name }}</p>
-<p>{{ video.description }}</p>
 
+
+<h1>{{ video.title }}</h1>
+<p>{{ video.course_code }} — <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a></p>
+<p>{{ video.description }}</p>
+{% if not ACCESS %}
+  <form action="{{ url_for('videos.buy', video_id=video.id) }}" method="POST">
+      {{ buy_form.csrf_token }}
+      <button type="submit" >Buy</button>
+  </form>
+{% endif %}
+{% if ACCESS %}
 <iframe 
     width="800" 
     height="450" 
     src="https://www.youtube.com/embed/{{ VIDEO_ID }}" 
     allowfullscreen>
 </iframe>
+{% endif %}
+
+
 
 <h3>Reviews</h3>
 {% if not video.reviews %}
-    <h2>No videos Yet</h2>
+    <h2>No reviews Yet</h2>
 {% endif %}
 <ul>{% for review in video.reviews %}
     <li>{{ review.comment }}</li>
@@ -24,23 +35,25 @@
 </ul>
 
     
-
+{% if ACCESS and not OWNER %}
 <h3>Leave a review</h3>
 <form action="{{ url_for('videos.review', video_id=video.id) }}" method="POST">
+  {{ review_form.csrf_token }}
 
-<label>Leave a comment</label>
-<input type="textarea" name="comment">
+  {{ review_form.comment.label }} {{ review_form.comment }}
 
-<label for="rating">Rate the video:</label>
-<select name="rating" required>
-  <option value="" disabled selected>Choose a rating...</option>
-  <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
-  <option value="4">⭐⭐⭐⭐ (Good)</option>
-  <option value="3">⭐⭐⭐ (Average)</option>
-  <option value="2">⭐⭐ (Poor)</option>
-  <option value="1">⭐ (Terrible)</option>
-</select>
+  <label for="rating">Rate the video:</label>
+  <select name="rating" required>
+    <option value="" disabled selected>Choose a rating...</option>
+    <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+    <option value="4">⭐⭐⭐⭐ (Good)</option>
+    <option value="3">⭐⭐⭐ (Average)</option>
+    <option value="2">⭐⭐ (Poor)</option>
+    <option value="1">⭐ (Terrible)</option>
+  </select>
 
 <button type="submit">Submit</button>
 </form>
+{% endif %}
 {% endblock %}
+

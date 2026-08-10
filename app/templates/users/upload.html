@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    {{ form.avatar.label }} {{ form.avatar }}
+    <br><br>
+    {% if form.avatar.errors %}
+      {% for error in form.avatar.errors %}
+        <span style="color: red;">{{ error }}</span>
+      {% endfor %}
+    {% endif %}
+
+    <button type="submit">Upload</button>
+</form>
+
+
+{% endblock %}
