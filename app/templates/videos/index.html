@@ -28,9 +28,9 @@
   }
 
   .empty-div {
-    width: 200px;              /* Explicit width */
-    height: 200px;             /* Explicit height */
-    background-color: blue;    /* Visible color */
+    width: 400px;              /* Explicit width */
+    height: 100px;             /* Explicit height */
+    background-color: gray;    /* Visible color */
     border: 2px solid black;
   }
 </style>
@@ -44,9 +44,8 @@
     {% endif %}
     
     {% for video in videos %}
-    <div class="parent">
         <div class="empty-div"></div>
-    </div>
+
         <li>
           <a href="{{ url_for('videos.show_video', video_id=video.id) }}">{{ video.title }}</a>
           {{ video.course_code }} by <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a>

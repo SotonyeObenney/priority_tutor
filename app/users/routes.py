@@ -24,17 +24,9 @@ class AvatarForm(FlaskForm):
 @login_required
 def profile():
     print()
-    #   <!-- Display name, university, faculty, department, level
-    current_user.full_name
-    current_user.university.name
-    current_user.faculty
-    current_user.department
-    current_user.level
-    print(current_user.full_name)
 
+    #Can put edit buttons
     reviews = current_user.reviews
-  
-
     return render_template("users/profile.html", current_user=current_user, reviews=reviews)
 
     
@@ -52,5 +44,9 @@ def upload_avatar():
           print(current_user.avatar_filename)
           db.session.commit()
           flash("Upload Successful")
+      else:
+          flash(avatar_form.errors)
     return render_template('users/upload.html', form=avatar_form)
-    
+
+
+#A way to delete files after they have been re-uploaded to avoid disc usage

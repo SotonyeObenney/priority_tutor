@@ -1,5 +1,0 @@
-avg_rating = 4.6
-star="⭐️"
-app/extensions is like the worktools while the rest of the entire app is like the workshop for which you will use those work tools
-config.py — settings, not behavior
-app/__init__.py — the factory, where it all gets wired together

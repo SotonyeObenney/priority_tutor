@@ -5,11 +5,11 @@ from .extensions import db, login_manager, migrate
 #The way you repeatedly update the database
 
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class) #These two lines create the app and register it with Config settings
 
-    migrate.init_app(app, db)
+    migrate.init_app(app, db) # These three lines connect the app to the db and login manager
     db.init_app(app)
     login_manager.init_app(app)
     from .users import users as users_blueprint

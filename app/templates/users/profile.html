@@ -15,7 +15,7 @@ List all reviews the student has left with the video title and rating -->
 
 {% endif %}
 
-<h3>{{ current_user.id  }}</h3>
+
 <h3>{{ current_user.full_name  }}</h3>
 <h3>{{ current_user.university.name }}</h3>
 <h3>{{ current_user.faculty }}</h3>
@@ -29,6 +29,7 @@ List all reviews the student has left with the video title and rating -->
     {% for review in reviews %}
         <h4>{{ review.video.title }}</h4>
         <p>{{ review.comment }}</p>
+        <p>{{ review.rating }}</p>
     {% endfor %}
 {% else %}
     <h4>You have no reviews</h4>

@@ -3,16 +3,18 @@
 
 {% block content %}
 
+
+
 <h1>{{ video.title }}</h1>
 <p>{{ video.course_code }} — <a href="{{ url_for('tutors.profile', user_id=video.tutor.user.id) }}">{{ video.tutor.user.full_name }}</a></p>
 <p>{{ video.description }}</p>
-{% if VIDEO_ID == 0 or not current_user.id == video.tutor.user_id %}
+{% if not ACCESS %}
   <form action="{{ url_for('videos.buy', video_id=video.id) }}" method="POST">
       {{ buy_form.csrf_token }}
       <button type="submit" >Buy</button>
   </form>
 {% endif %}
-{% if not VIDEO_ID == 0 %}
+{% if ACCESS %}
 <iframe 
     width="800" 
     height="450" 
@@ -20,6 +22,8 @@
     allowfullscreen>
 </iframe>
 {% endif %}
+
+
 
 <h3>Reviews</h3>
 {% if not video.reviews %}
@@ -31,7 +35,7 @@
 </ul>
 
     
-{% if not VIDEO_ID == 0 %}
+{% if ACCESS and not OWNER %}
 <h3>Leave a review</h3>
 <form action="{{ url_for('videos.review', video_id=video.id) }}" method="POST">
   {{ review_form.csrf_token }}

@@ -5,17 +5,27 @@ from . import videos
 from ..extensions import db
 from flask_login import current_user, login_required
 from datetime import datetime as dt
+import requests
+from ..tutors.helpers import tutor_required
+
+import hmac
+import hashlib
+
+from .helpers import can_access_video, extract_video_id, recalculate_tutor_rating
+from .paystack import initialize_transaction, verify_transaction, record_purchase
 
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FloatField
 from wtforms.validators import DataRequired #You can also add some length of characters
 
+from functools import wraps
 
 import os 
 from dotenv import load_dotenv
 
-import requests
+
+
 
 
 
@@ -47,84 +57,70 @@ def index():
 
 @videos.route('/show_video/<int:video_id>')
 @login_required
-#This isn't idiot proof😭
 def show_video(video_id):
     review_form = ReviewForm()
     buy_form = BuyForm()
     current_video = Video.query.get_or_404(video_id)
     current_video_url = current_video.youtube_url
-    if current_video_url.startswith('https://www.youtube.com/watch?v='):
-        VIDEO_ID = current_video_url.split("https://www.youtube.com/watch?v=")[1].split('&')[0]
-    else:
-        VIDEO_ID = current_video_url.split('https://youtu.be/')[1].split('?')[0]
-    if current_video.is_free:
-        flash('the video is free so you can view it')
-        if not current_user.id == current_video.tutor.user_id:
-          current_video.view_count += 1
-          db.session.commit()
-        return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, video=current_video, review_form=review_form)
-    if Purchase.query.filter_by(student_id=current_user.id, video_id=video_id).first():
-        flash('you bought the video you can view it')
-        if not current_user.id == current_video.tutor.user.id:
-          current_video.view_count += 1
-          db.session.commit()
-        return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, video=current_video, review_form=review_form, buy_form=buy_form)# I need to get the buy button gated from those who have already paid
-    if current_user.id == current_video.tutor.user_id:   
-        flash('because you are the creator you can view it')
-        return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, video=current_video, review_form=review_form)
-    else:
-        flash('You cannot view this video without buying it')
-        return render_template('videos/video.html', VIDEO_ID=0, video=current_video, review_form=review_form, buy_form=buy_form)
+    VIDEO_ID = extract_video_id(current_video_url)
+    
+    video_access, owner = can_access_video(current_user, current_video)
+    if not video_access:
+      flash("You must buy this video to watch it") 
+    return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, ACCESS=video_access, OWNER=owner, video=current_video, review_form=review_form, buy_form=buy_form)
+
+
+
+
 
 @videos.route('/upload', methods=['POST', 'GET'])
 @login_required
+@tutor_required
 def upload_video():
-    if not current_user.is_tutor:
-        abort(403)
-    else:
-        upload_video_form = UploadVideoForm()
-        if request.method == 'POST':
-
-            if upload_video_form.validate_on_submit():
-            
-              title = request.form.get('title')
-              course_code = request.form.get('course_code')
-              description = request.form.get('description')
-              youtube_url = request.form.get('youtube_url')
-              price = request.form.get('price')
-              is_free = request.form.get('is_free') == 'True'
-          
-              new_video = Video(
-                  tutor_id = current_user.tutor_profile.id,
-                  title = title,
-                  course_code = course_code,
-                  description = description,
-                  youtube_url = youtube_url,
-                  is_free = is_free,
-                  price = price
-                  
-                  )
-          
-              db.session.add(new_video)
-              db.session.commit()
-              flash("VIDEO ADDED")
-              return redirect(url_for('tutors.profile', user_id=current_user.id))
-
-        return render_template('videos/upload.html', form=upload_video_form)
-    
+    upload_video_form = UploadVideoForm()
+    if request.method == 'POST':
+        if upload_video_form.validate_on_submit():
+          title = upload_video_form.title.data
+          course_code = upload_video_form.course_code.data
+          description = upload_video_form.description.data
+          youtube_url = upload_video_form.youtube_url.data
+          price = upload_video_form.price.data
+          is_free = request.form.get('is_free')== 'True'
+      
+          new_video = Video(
+              tutor_id = current_user.tutor_profile.id,
+              title = title,
+              course_code = course_code,
+              description = description,
+              youtube_url = youtube_url,
+              is_free = is_free,
+              price = price
+              
+              )
+          db.session.add(new_video)
+          db.session.commit()
+          flash("VIDEO ADDED")
+          return redirect(url_for('tutors.profile', user_id=current_user.id))
+        else:
+            flash(upload_video_form.errors)
+            pass
+    return render_template('videos/upload.html', form=upload_video_form)
+  
 @videos.route('/review/<int:video_id>', methods=["POST"])
 @login_required
 def review(video_id):
     review_form = ReviewForm()
-    video = Video.query.get_or_404(video_id)
+    current_video = Video.query.get_or_404(video_id)
     comment = request.form.get('comment')
     rating = request.form.get('rating')
-    #Self check for video review
-    if current_user.id == video.tutor.user_id:
+    video_access, owner = can_access_video(current_user, current_video)
+    if not video_access:
+        flash('You must have access to this video before reviewing it')
+        return redirect(url_for('videos.show_video', video_id=video_id))
+    if owner:
         flash('You cannot review a video you own')
         return redirect(url_for('videos.show_video', video_id= video_id))
     
-    #Duplicate check for video review
     existing = Review.query.filter_by(video_id=video_id, student_id=current_user.id).first()
     if existing:
         flash('You have already reviewed this video')
@@ -137,20 +133,17 @@ def review(video_id):
               comment = comment          
           )
       db.session.add(new_review)
-      db.session.flush()
-      
-      total_reviews = len(video.reviews)
-      sum_rating = 0
-      for review in video.reviews:
-        sum_rating += review.rating 
-
-      avg_rating = sum_rating/total_reviews
-
-      video.tutor.avg_rating = avg_rating
-      video.tutor.total_reviews = total_reviews
       db.session.commit()
 
+      flash("Review succesfully added")
+      recalculate_tutor_rating(current_video, db)
+      # db.session.commit()
+    else:
+      flash(review_form.errors)
       return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
+    
+    
+    return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
 
 @videos.route('/buy/<int:video_id>', methods=["POST"])
 @login_required
@@ -164,64 +157,79 @@ def buy(video_id):
         "Content-Type": "application/json",
     }
     url = "https://api.paystack.co/transaction/initialize"
-   
-    price = Video.query.get(video_id).price
-    price = float(price)
-    #to change to KOBO
-    price = price * 100
-    email = current_user.email
-    response = requests.post(url,
-                         headers=header,
-                         json={"email": email, 
-                               "amount": price, 
-                               "callback_url":url_for("videos.payment_callback", _external=True), 
-                               "metadata": {
-                                            "video_id": video_id}
-                                }
-                         )
+
     
-    auth_url = response.json()['data']['authorization_url']
-    return redirect(auth_url)
+    amount = float(Video.query.get_or_404(video_id).price)
+    amount *= 100
+    email = current_user.email
+    callback_url = url_for('videos.show_video', video_id=video_id)
+    metadata = {"video_id": video_id,
+                "student_id": current_user.id
+                }
+
+
+    auth_url = initialize_transaction(email, amount, callback_url, metadata)
+
+    if auth_url:
+      return redirect(auth_url)
+    else:
+      return redirect(url_for('videos.show_video', video_id=video_id))
 
 
 @videos.route('/payment/callback', methods=["GET"])
 @login_required
 def payment_callback():
+  reference = request.args.get("reference")
+  data = verify_transaction(reference)
+
+  if not data or not data.get('data') or data['data'].get('status') != 'success':
+    flash('Payment could not be verified. Please try again.')
+    return redirect(url_for('videos.index'))
+
+  
+  video_id = data['data']['metadata']['video_id']
+  flash("Payment received! We're confirming it now — this can take a few seconds.")
+  return redirect(url_for('videos.show_video', video_id=video_id))
+
+
+
+@videos.route('/payment_webhook', methods=['POST'])
+def handle_paystack_webhook():
+    PAYSTACK_API_TEST_SKEY = current_app.config["PAYSTACK_API_TEST_SKEY"]   
+    paystack_signature = request.headers.get('x-paystack-signature')
+    if not paystack_signature:
+        abort(401)
+
+
+    raw_payload = request.get_data()
+    computed_hash = hmac.new(
+        key=PAYSTACK_API_TEST_SKEY.encode('utf-8'),
+        msg=raw_payload,
+        digestmod=hashlib.sha512
+    ).hexdigest()
+
+    if hmac.compare_digest(computed_hash, paystack_signature):
+
+      payload = request.get_json()
+      reference = payload['data']['reference']
+      
+      data = verify_transaction(reference)
+
+      if not data or not data.get('data') or data['data'].get('status') != 'success':
+        abort(400)
     
-    reference = request.args.get("reference")
-    PAYSTACK_API_TEST_SKEY = current_app.config["PAYSTACK_API_TEST_SKEY"]
-    response = requests.get(
-        f"https://api.paystack.co/transaction/verify/{reference}",
-        headers={"Authorization": f"Bearer {PAYSTACK_API_TEST_SKEY}"}
-    )
-    
-    data = response.json()
-
-    if data['data']['status'] == 'success':
-        amount_paid = data['data']['amount'] / 100
-        video_id = data['data']['metadata']['video_id']
-
-        existing = Purchase.query.filter_by(student_id=current_user.id, video_id=video_id).first()
-        if existing:
-            flash('You already have access to this video.')
-            return redirect(url_for('videos.show_video', video_id=video_id))
-
-        
-        new_purchase = Purchase(
-            student_id=current_user.id,
-            video_id=video_id,
-            amount_paid=amount_paid,
-            paystack_reference=reference,
-        )
-        db.session.add(new_purchase)
-        db.session.commit()
-
-        flash('Payment successful! You now have access to this video.')
-        return redirect(url_for('videos.show_video', video_id=video_id))
-    
+      if data['data']['status'] == 'success':
+          amount_paid = data['data']['amount'] / 100
+          video_id = data['data']['metadata']['video_id']
+          student_id = data['data']['metadata']['student_id']
+          amount_paid = data['data']['amount'] / 100
+          record_purchase(student_id, video_id, amount_paid, reference, db)    
+      return "OK", 200
     else:
-        flash('Payment failed. Please try again.')
-        return redirect(url_for('videos.index'))
+      abort(400)
+
+
+    
 
 
   
@@ -232,3 +240,6 @@ def payment_callback():
 # fixing the url for youtube not to break
 # Fixing the buy button showing for a free video
 # Webhooks
+#What to do when network is down on the payment gateway
+#I allowed creators to leave reviews on their own videos
+#Video.query.paginate(...) for index route
