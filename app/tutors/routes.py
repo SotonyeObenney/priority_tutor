@@ -28,7 +28,6 @@ def profile(user_id):
 
 #Not rendering on the Home page
 @tutors.route('/apply', methods=['GET', 'POST'])
-@tutor_required
 @login_required
 def apply():
     apply_form = ApplyForm()
