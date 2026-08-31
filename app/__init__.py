@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from .extensions import db, login_manager, migrate
+from .extensions import db, login_manager, migrate, cors
 
 #The way you repeatedly update the database
 
@@ -11,6 +11,8 @@ def create_app(config_class=Config):
 
     migrate.init_app(app, db) # These three lines connect the app to the db and login manager
     db.init_app(app)
+    cors.init_app(app)
+
     login_manager.init_app(app)
     from .users import users as users_blueprint
     from .auth import auth as auth_blueprint

@@ -4,4 +4,4 @@ __pychache__/
 *.pyc
 *.db
 .DS_Store
-static/avatars
+static/avatars/
