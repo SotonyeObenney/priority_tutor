@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, abort, flash
+from flask import render_template, redirect, url_for, request, abort, flash, jsonify
 from ..models import Video, Review, TutorProfile, Purchase
 from flask import current_app
 from . import videos
@@ -49,11 +49,27 @@ def index():
     course = request.args.get('course')
 
     if course:
-        videos = Video.query.filter_by(course_code=course).all()
-    else:
-        videos = Video.query.all()
+        video_objects = Video.query.filter_by(course_code=course).all()
 
-    return render_template('videos/index.html', videos=videos)
+    else:
+        video_objects = Video.query.all()
+
+    # this search feature is broken it uses url parameters to work fix it
+    # It looked explicitly for the search keywords and didn't return anything in general
+    videos = [
+        {
+            "id": v.id,
+            "title": v.title,
+            "course_code": v.course_code,
+            "price": v.price,
+            "is_free": v.is_free,
+            "view_count": v.view_count,
+        }
+        for v in video_objects
+    ]
+
+    return jsonify({"videos": videos}), 200
+
 
 @videos.route('/show_video/<int:video_id>')
 @login_required
@@ -64,47 +80,60 @@ def show_video(video_id):
     current_video_url = current_video.youtube_url
     VIDEO_ID = extract_video_id(current_video_url)
     
-    video_access, owner = can_access_video(current_user, current_video)
+    video_access, owner, message = can_access_video(current_user, current_video)
     if not video_access:
-      flash("You must buy this video to watch it") 
-    return render_template('videos/video.html', VIDEO_ID=VIDEO_ID, ACCESS=video_access, OWNER=owner, video=current_video, review_form=review_form, buy_form=buy_form)
+      return jsonify({"message": "You must buy this video to watch it"}), 402
+
+    current_video.view_count += 1
+    db.session.commit()
+    return jsonify({'message': message, 'video': {
+        'title': current_video.title,
+        'course-code': current_video.course_code,
+        'description': current_video.description,
+        'tutor' : current_video.tutor.user.full_name,
+        'VIDEO_ID': VIDEO_ID
+    }
+       }), 200
+    
+    # render_template('videos/video.html', VIDEO_ID=VIDEO_ID, ACCESS=video_access, OWNER=owner, video=current_video, review_form=review_form, buy_form=buy_form)
 
 
 
 
 
-@videos.route('/upload', methods=['POST', 'GET'])
+@videos.route('/upload', methods=['POST'])
 @login_required
 @tutor_required
 def upload_video():
     upload_video_form = UploadVideoForm()
-    if request.method == 'POST':
-        if upload_video_form.validate_on_submit():
-          title = upload_video_form.title.data
-          course_code = upload_video_form.course_code.data
-          description = upload_video_form.description.data
-          youtube_url = upload_video_form.youtube_url.data
-          price = upload_video_form.price.data
-          is_free = request.form.get('is_free')== 'True'
+
+    if upload_video_form.validate_on_submit():
+      title = upload_video_form.title.data
+      course_code = upload_video_form.course_code.data
+      description = upload_video_form.description.data
+      youtube_url = upload_video_form.youtube_url.data
+      price = upload_video_form.price.data
+      is_free = request.form.get('is_free')== 'True'
+      #is free should cancel out price from getting filled
       
-          new_video = Video(
-              tutor_id = current_user.tutor_profile.id,
-              title = title,
-              course_code = course_code,
-              description = description,
-              youtube_url = youtube_url,
-              is_free = is_free,
-              price = price
-              
-              )
-          db.session.add(new_video)
-          db.session.commit()
-          flash("VIDEO ADDED")
-          return redirect(url_for('tutors.profile', user_id=current_user.id))
-        else:
-            flash(upload_video_form.errors)
-            pass
-    return render_template('videos/upload.html', form=upload_video_form)
+  
+      new_video = Video(
+          tutor_id = current_user.tutor_profile.id,
+          title = title,
+          course_code = course_code,
+          description = description,
+          youtube_url = youtube_url,
+          is_free = is_free,
+          price = price
+          
+          )
+      db.session.add(new_video)
+      db.session.commit()
+      return jsonify({"message": "Video Uploaded Successfully"}), 201
+
+    #redirect(url_for('tutors.profile')
+    else:
+        return jsonify({'error': upload_video_form.errors}), 400
   
 @videos.route('/review/<int:video_id>', methods=["POST"])
 @login_required
@@ -113,18 +142,17 @@ def review(video_id):
     current_video = Video.query.get_or_404(video_id)
     comment = request.form.get('comment')
     rating = request.form.get('rating')
-    video_access, owner = can_access_video(current_user, current_video)
+    video_access, owner, message = can_access_video(current_user, current_video)
     if not video_access:
-        flash('You must have access to this video before reviewing it')
-        return redirect(url_for('videos.show_video', video_id=video_id))
+        return jsonify({'message': message}), 403
     if owner:
-        flash('You cannot review a video you own')
-        return redirect(url_for('videos.show_video', video_id= video_id))
+        return jsonify({'message': message}), 403
+        
     
     existing = Review.query.filter_by(video_id=video_id, student_id=current_user.id).first()
     if existing:
-        flash('You have already reviewed this video')
-        return redirect(url_for('videos.show_video', video_id=video_id))
+      return jsonify({'message': 'You have already reviewed this video'}), 409
+
     if review_form.validate_on_submit():
       new_review = Review(
               video_id = video_id,
@@ -134,13 +162,13 @@ def review(video_id):
           )
       db.session.add(new_review)
       db.session.commit()
-
-      flash("Review succesfully added")
       recalculate_tutor_rating(current_video, db)
-      # db.session.commit()
+
+      return jsonify({'message': 'Review successfully made'}), 201
+
     else:
-      flash(review_form.errors)
-      return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
+      return jsonify({'errors': review_form.errors}), 400
+
     
     
     return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
@@ -171,9 +199,12 @@ def buy(video_id):
     auth_url = initialize_transaction(email, amount, callback_url, metadata)
 
     if auth_url:
-      return redirect(auth_url)
+      return jsonify({'message': "Payment Initialization successful",
+                      'auth_url': auth_url
+                      }), 200
+
     else:
-      return redirect(url_for('videos.show_video', video_id=video_id))
+      return jsonify({'message': "Payment Initialization failed"}), 500
 
 
 @videos.route('/payment/callback', methods=["GET"])

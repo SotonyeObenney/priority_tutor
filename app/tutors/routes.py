@@ -1,4 +1,4 @@
-from flask import render_template, request, flash, redirect, url_for, abort
+from flask import jsonify, render_template, request, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 from ..models import TutorProfile, User, Purchase
 from .helpers import tutor_required
@@ -23,35 +23,53 @@ def profile(user_id):
     if tutor == None:
       abort(404)
     tutor_videos = user.tutor_profile.videos
-    return render_template('tutors/index.html', videos=tutor_videos, tutor=tutor)
+
+    return jsonify({
+       'tutor_info':
+        {
+          'name': tutor.user.full_name,
+          'department': tutor.user.department,
+          'level': tutor.user.level,
+          'bio': tutor.bio,
+          'courses' : tutor.courses,
+          'is_approved': tutor.is_approved,
+          'avg_rating': tutor.avg_rating,
+          'total_reviews': tutor.total_reviews
+        },
+        'tutor_videos' : [{
+                              'id' : v.id,
+                              'title': v.title,
+                              'course_code': v.course_code
+
+
+                           } for v in tutor_videos]
+    }), 200
+
 
 
 #Not rendering on the Home page
-@tutors.route('/apply', methods=['GET', 'POST'])
+@tutors.route('/apply', methods=['POST'])
 @login_required
 def apply():
     apply_form = ApplyForm()
     tutor = TutorProfile.query.filter_by(user_id=current_user.id).first()
     if tutor:
-        flash("You are already registered as a tutor")
-        return render_template("tutors/apply.html", form=apply_form)
-    if request.method == "POST":
-        bio = apply_form.bio.data
-        courses = apply_form.courses.data
-  
+        return jsonify({'error': 'You are already registered as a tutor'}),403
 
-        
-        if apply_form.validate_on_submit():
-          new_tutor = TutorProfile(
-              bio=bio,
-              courses=courses,
-              user_id=current_user.id
-              )
-          
-          db.session.add(new_tutor)
-          db.session.commit()
-          return redirect(url_for('main.home'))
-    return render_template("tutors/apply.html", form=apply_form)
+    bio = apply_form.bio.data
+    courses = apply_form.courses.data
+    
+    if apply_form.validate_on_submit():
+      new_tutor = TutorProfile(
+          bio=bio,
+          courses=courses,
+          user_id=current_user.id
+          )
+      
+      db.session.add(new_tutor)
+      db.session.commit()
+      return jsonify({'message':'Application submitted'}),201
+
 
 
 @tutors.route('/dashboard')
@@ -74,7 +92,16 @@ def dashboard():
     total_reviews = 0
     for video in all_videos:
       total_reviews += len(video.reviews)
+    return jsonify({
+      'amount_paid': amount_paid,
+      'total_views': total_views,
+      'total_reviews': total_reviews,
+      'tutor_videos' : [{
+                          'id' : v.id,
+                          'title': v.title,
+                          'course_code': v.course_code
+                        } for v in all_videos]
+       })
 
-    return render_template('tutors/dashboard.html', AMOUNT_PAID=amount_paid, TOTAL_VIEWS=total_views, TOTAL_REVIEWS=total_reviews, ALL_VIDEOS=all_videos )
 
 # dashboard()'s Python-loop aggregation (amount_paid, total_views, total_reviews) — flagged before, unchanged, still fine at your current scale, still worth converting to SQL aggregates eventually. Also still has the leftover

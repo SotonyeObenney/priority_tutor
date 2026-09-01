@@ -2,7 +2,7 @@ from .. models import Purchase
 from urllib.parse import urlparse, parse_qs
 import re
 
-def can_access_video(user:object, video:object) -> bool | bool :
+def can_access_video(user:object, video:object) -> bool | bool | str:
     video_id = video.id
     user_id = user.id
     tutor_id = video.tutor.user_id
@@ -11,14 +11,14 @@ def can_access_video(user:object, video:object) -> bool | bool :
     #To check if the person is the tutor
     if (user_id == tutor_id):
         owner = True
-        return True, True
+        return True, owner, "Owner of the Video"
     if video.is_free:
-        return True, False
+        return True, owner, "Video Free"
     #To check if a student has paid
     if Purchase.query.filter_by(student_id=user_id, video_id=video_id).first():
-        return True, False
+        return True, owner, "Video Paid for"
     else:
-        return False, False
+        return False, owner, "Purchase required"
 
 
 def extract_video_id(url: str) -> str:
