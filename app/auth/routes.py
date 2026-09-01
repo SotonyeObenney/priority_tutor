@@ -88,7 +88,7 @@ def register():
     # universities = University.query.all() how will react get the university ids?
     # return render_template('auth/register.html', universities=universities, form=register_form)
 
-
+#
     
 
 @auth.route('/login', methods=['POST'])
