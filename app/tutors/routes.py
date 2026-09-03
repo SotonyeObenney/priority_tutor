@@ -101,7 +101,9 @@ def dashboard():
                           'title': v.title,
                           'course_code': v.course_code
                         } for v in all_videos]
-       })
+       }), 200
 
 
 # dashboard()'s Python-loop aggregation (amount_paid, total_views, total_reviews) — flagged before, unchanged, still fine at your current scale, still worth converting to SQL aggregates eventually. Also still has the leftover
+
+#just testing

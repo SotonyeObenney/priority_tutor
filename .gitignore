@@ -5,3 +5,4 @@ __pychache__/
 *.db
 .DS_Store
 static/avatars/.gitkeep
+*.pem

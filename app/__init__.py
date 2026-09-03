@@ -8,10 +8,12 @@ from .extensions import db, login_manager, migrate, cors
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class) #These two lines create the app and register it with Config settings
-
+    print(app.config["SESSION_COOKIE_SAMESITE"]) ; print(app.config["SESSION_COOKIE_SECURE"])
     migrate.init_app(app, db) # These three lines connect the app to the db and login manager
     db.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, supports_credentials=True, origins=["http://localhost:5173"])
+
+
 
     login_manager.init_app(app)
     from .users import users as users_blueprint

@@ -1,5 +1,5 @@
 from flask_login import login_required, current_user
-from flask import render_template, url_for, redirect
+from flask import render_template, url_for, redirect, jsonify
 from ..models import TutorProfile, User
 from . import main
 from ..extensions import db
@@ -9,7 +9,9 @@ from ..extensions import db
 def home():
   
     if not current_user.is_authenticated:
-        return redirect(url_for('auth.login'))
+        # return redirect(url_for('auth.login'))
+        return jsonify({'test':'auth.login'})
+    
     else:
         return render_template('main/home.html')
     

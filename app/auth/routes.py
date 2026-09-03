@@ -93,17 +93,18 @@ def register():
 
 @auth.route('/login', methods=['POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("videos.index"))
 
 
     login_form = LoginForm()
-
-    email = request.form.get('email')
-    password = request.form.get('password')
+    data = request.get_json(silent=True)
+    email = data.get('email')
+    password = data.get('password')
     user = User.query.filter_by(email=email).first()
-    
-    
+
+
+    if not data:
+      return jsonify({"error": "Invalid or missing JSON body"}), 400
+
     if not user:
         return jsonify({"error": "No account found with that email."}), 401
     
