@@ -17,18 +17,19 @@ def initialize_transaction(email, amount, callback_url, metadata):
         }
 
     url = "https://api.paystack.co/transaction/initialize"
-    response = requests.post(url,
-                             headers=header,
-                             json={"email": email, 
-                                   "amount": amount, 
-                                   "metadata": metadata,
-                                   "callback_url" : callback_url
-                                   }
-
-                             )
     try:
+      response = requests.post(url,
+                              headers=header,
+                              json={"email": email, 
+                                    "amount": amount, 
+                                    "metadata": metadata,
+                                    "callback_url" : callback_url
+                                    }
+
+                              )
+    
       return response.json()['data']['authorization_url'] 
-    except KeyError:
+    except (KeyError, requests.exceptions.ConnectionError):
       flash("There was an issue rendering the payment page please try again later")
       return False
 

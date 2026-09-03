@@ -74,8 +74,6 @@ def index():
 @videos.route('/show_video/<int:video_id>')
 @login_required
 def show_video(video_id):
-    review_form = ReviewForm()
-    buy_form = BuyForm()
     current_video = Video.query.get_or_404(video_id)
     current_video_url = current_video.youtube_url
     VIDEO_ID = extract_video_id(current_video_url)
@@ -87,15 +85,18 @@ def show_video(video_id):
     current_video.view_count += 1
     db.session.commit()
     return jsonify({'message': message, 'video': {
+        'id': current_video.id,
+        'is_owner': owner,
+        'price' : current_video.price,
         'title': current_video.title,
-        'course-code': current_video.course_code,
+        'course_code': current_video.course_code,
         'description': current_video.description,
         'tutor' : current_video.tutor.user.full_name,
         'VIDEO_ID': VIDEO_ID
     }
        }), 200
     
-    # render_template('videos/video.html', VIDEO_ID=VIDEO_ID, ACCESS=video_access, OWNER=owner, video=current_video, review_form=review_form, buy_form=buy_form)
+
 
 
 
@@ -106,17 +107,21 @@ def show_video(video_id):
 @tutor_required
 def upload_video():
     upload_video_form = UploadVideoForm()
+    data = request.get_json(silent=True)
 
+    if not data:
+      return jsonify({"error": "Invalid or missing JSON body"}), 400
+
+    
     if upload_video_form.validate_on_submit():
-      title = upload_video_form.title.data
-      course_code = upload_video_form.course_code.data
-      description = upload_video_form.description.data
-      youtube_url = upload_video_form.youtube_url.data
-      price = upload_video_form.price.data
-      is_free = request.form.get('is_free')== 'True'
+      title = data.get('title')
+      course_code = data.get('course_code')
+      description = data.get('description')
+      youtube_url = data.get('youtube_url')
+      price = data.get('price')
+      is_free = data.get('is_free') == 'True'
       #is free should cancel out price from getting filled
       
-  
       new_video = Video(
           tutor_id = current_user.tutor_profile.id,
           title = title,
@@ -130,8 +135,6 @@ def upload_video():
       db.session.add(new_video)
       db.session.commit()
       return jsonify({"message": "Video Uploaded Successfully"}), 201
-
-    #redirect(url_for('tutors.profile')
     else:
         return jsonify({'error': upload_video_form.errors}), 400
   
@@ -139,9 +142,14 @@ def upload_video():
 @login_required
 def review(video_id):
     review_form = ReviewForm()
+    data = request.get_json(silent=True)
+
+    if not data:
+      return jsonify({"error": "Invalid or missing JSON body"}), 400
+
     current_video = Video.query.get_or_404(video_id)
-    comment = request.form.get('comment')
-    rating = request.form.get('rating')
+    comment = data.get('comment')
+    rating = data.get('rating')
     video_access, owner, message = can_access_video(current_user, current_video)
     if not video_access:
         return jsonify({'message': message}), 403
@@ -171,30 +179,23 @@ def review(video_id):
 
     
     
-    return redirect(url_for('videos.show_video', video_id= video_id, review_form=review_form))
 
-@videos.route('/buy/<int:video_id>', methods=["POST"])
+
+@videos.route('/buy/<int:video_id>')
 @login_required
 def buy(video_id):
-    buy_form = BuyForm()
-    PAYSTACK_API_TEST_PKEY = current_app.config['PAYSTACK_API_TEST_PKEY']
-    PAYSTACK_API_TEST_SKEY = current_app.config['PAYSTACK_API_TEST_SKEY']
-    # PAYSTACK_API_TEST_PKEY = os.environ.get("PAYSTACK_API_TEST_SKEY")
-    header = {
-        "Authorization": f"Bearer {PAYSTACK_API_TEST_SKEY}",
-        "Content-Type": "application/json",
-    }
-    url = "https://api.paystack.co/transaction/initialize"
-
+    if Purchase.query.filter_by(student_id=current_user.id, video_id=video_id).first():
+      return jsonify({'error':'You have already purchased this video'}),403
     
-    amount = float(Video.query.get_or_404(video_id).price)
+    current_video = Video.query.get_or_404(video_id)
+
+    amount = float(current_video.price)
     amount *= 100
     email = current_user.email
     callback_url = url_for('videos.show_video', video_id=video_id)
     metadata = {"video_id": video_id,
                 "student_id": current_user.id
                 }
-
 
     auth_url = initialize_transaction(email, amount, callback_url, metadata)
 
@@ -220,7 +221,7 @@ def payment_callback():
   
   video_id = data['data']['metadata']['video_id']
   flash("Payment received! We're confirming it now — this can take a few seconds.")
-  return redirect(url_for('videos.show_video', video_id=video_id))
+  return redirect(url_for('videos.show_video', video_id=video_id))#This will connect with my react front end
 
 
 

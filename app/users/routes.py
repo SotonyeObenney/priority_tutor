@@ -20,14 +20,30 @@ class AvatarForm(FlaskForm):
     avatar = FileField('avatar', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only')])
 
 
-@users.route('/')
+@users.route('/profile')
 @login_required
 def profile():
-    print()
-
     #Can put edit buttons
     reviews = current_user.reviews
-    return render_template("users/profile.html", current_user=current_user, reviews=reviews)
+    return jsonify({
+        'name': current_user.full_name,
+        'university': current_user.university.name,
+        'faculty': current_user.faculty,
+        'department': current_user.department,
+        'level': current_user.level,
+        'reviews': [{
+              'video_title': r.video.title,
+              'comment': r.comment,
+              'rating': r.rating,
+              'review_id': r.id,
+              'video_id': r.id,
+              'created_at': r.created_at
+           } for r in current_user.reviews]
+
+
+
+       }), 200
+
 
     
 @users.route('/upload_avatar', methods=["POST"])
@@ -46,7 +62,8 @@ def upload_avatar():
         return jsonify({'message':'Upload Successful'}), 201
       
       else:
-        return jsonify({'error':avatar_form.errors}),400
+        return jsonify({'error':avatar_form.errors}), 400
+
 
 
 

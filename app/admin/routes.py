@@ -6,7 +6,7 @@ from . import admin
 
 #You can still add flash messages to these when you are designing it
 
-@admin.route('/application')
+@admin.route('/applications')
 @login_required
 def index():
     if not current_user.is_admin:
@@ -22,7 +22,7 @@ def index():
       
 
 
-@admin.route('/approve/<int:tutor_id>', methods=['POST'])
+@admin.route('/approve/<int:tutor_id>')
 @login_required
 def approve(tutor_id):
     if not current_user.is_admin:
@@ -35,7 +35,7 @@ def approve(tutor_id):
       return jsonify({'message':'Tutor profile approved.'}),201
 
 
-@admin.route('/reject/<int:tutor_id>', methods=['POST'])
+@admin.route('/reject/<int:tutor_id>')
 @login_required
 def reject(tutor_id):
     if not current_user.is_admin:

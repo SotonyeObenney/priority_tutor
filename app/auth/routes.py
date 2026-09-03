@@ -32,19 +32,22 @@ def register():
 
     # if current_user.is_authenticated: Have react check this instead and do conditional routing
     #     return redirect(url_for('videos.index'))
-    
+    data = request.get_json(silent=True)
     register_form = RegisterForm()
 
-    email = request.form.get('email')
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    full_name = request.form.get('full_name')
-    faculty = request.form.get('faculty')
-    department = request.form.get('department')
-    level = request.form.get('level')
-    university_id = request.form.get('university_id')
+    email = data.get('email')
+    password = data.get('password')
+    confirm_password = data.get('confirm_password')
+    full_name = data.get('full_name')
+    faculty = data.get('faculty')
+    department = data.get('department')
+    level = data.get('level')
+    university_id = data.get('university_id')
 
     
+
+    if not data:
+      return jsonify({"error": "Invalid or missing JSON body"}), 400
 
     if not email or not password or not full_name:
       return jsonify({'error':'All fields are required.'}), 400
@@ -88,22 +91,21 @@ def register():
     # universities = University.query.all() how will react get the university ids?
     # return render_template('auth/register.html', universities=universities, form=register_form)
 
-#
+
     
 
 @auth.route('/login', methods=['POST'])
 def login():
 
-
-    login_form = LoginForm()
     data = request.get_json(silent=True)
+    login_form = LoginForm()
+    
+    if not data:
+      return jsonify({"error": "Invalid or missing JSON body"}), 400
+    
     email = data.get('email')
     password = data.get('password')
     user = User.query.filter_by(email=email).first()
-
-
-    if not data:
-      return jsonify({"error": "Invalid or missing JSON body"}), 400
 
     if not user:
         return jsonify({"error": "No account found with that email."}), 401
@@ -118,7 +120,7 @@ def login():
           "user": {"id": user.id, "email": user.email, "full_name": user.full_name, "is_tutor": user.is_tutor}
       }), 200    
 
-#go over how to write restful message dicts
+
 @auth.route('/logout')
 def logout():
     logout_user()
