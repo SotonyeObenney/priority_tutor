@@ -64,6 +64,7 @@ def index():
             "price": v.price,
             "is_free": v.is_free,
             "view_count": v.view_count,
+            "tutor_name": v.tutor.user.full_name
         }
         for v in video_objects
     ]
@@ -80,11 +81,8 @@ def show_video(video_id):
     
     video_access, owner, message = can_access_video(current_user, current_video)
     if not video_access:
-      return jsonify({"message": "You must buy this video to watch it"}), 402
-
-    current_video.view_count += 1
-    db.session.commit()
-    return jsonify({'message': message, 'video': {
+      return jsonify({"error": "You must buy this video to watch it", 'video': {
+       'access': video_access,
         'id': current_video.id,
         'is_owner': owner,
         'price' : current_video.price,
@@ -92,7 +90,31 @@ def show_video(video_id):
         'course_code': current_video.course_code,
         'description': current_video.description,
         'tutor' : current_video.tutor.user.full_name,
-        'VIDEO_ID': VIDEO_ID
+        'reviews': [{'id':r.id, 
+                     'rating':r.rating, 
+                     'comment':r.comment,
+                     'name': r.student.full_name
+                     } for r in current_video.reviews]
+    }}), 402
+
+    current_video.view_count += 1
+    db.session.commit()
+    print(current_video.reviews)
+    return jsonify({'message': message, 'video': {
+       'access': video_access,
+        'id': current_video.id,
+        'is_owner': owner,
+        'price' : current_video.price,
+        'title': current_video.title,
+        'course_code': current_video.course_code,
+        'description': current_video.description,
+        'tutor' : current_video.tutor.user.full_name,
+        'VIDEO_ID': VIDEO_ID,
+        'reviews': [{'id':r.id, 
+                     'rating':r.rating, 
+                     'comment':r.comment,
+                     'name': r.student.full_name
+                     } for r in current_video.reviews]
     }
        }), 200
     

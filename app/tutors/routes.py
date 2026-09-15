@@ -52,7 +52,7 @@ def profile(user_id):
 @login_required
 def apply():
     apply_form = ApplyForm()
-    
+      
     tutor = TutorProfile.query.filter_by(user_id=current_user.id).first()
     if tutor:
         return jsonify({'error': 'You are already registered as a tutor'}),403

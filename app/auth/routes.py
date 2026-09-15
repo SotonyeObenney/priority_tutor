@@ -7,7 +7,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField, PasswordField
 from wtforms.validators import DataRequired #You can also add some length of characters
 
-from flask_login import login_user
+from flask_login import login_user, login_required
 from flask_login import logout_user, current_user
 
 
@@ -25,11 +25,24 @@ class RegisterForm(FlaskForm):
     faculty = StringField('Faculty', validators=[DataRequired()])
     department = StringField('Department', validators=[DataRequired()])
 
-    
+@auth.route("/me")
+@login_required
+def me():
+    return jsonify({
+              "user": {"id": current_user.id, "email": current_user.email, "full_name": current_user.full_name, "is_tutor": current_user.is_tutor, "university": current_user.university.name}
+          }), 200 
+   
 
-@auth.route('/register', methods=['POST'])
+
+@auth.route('/register', methods=['POST', 'GET'])
 def register():
-
+    if request.method == "GET":
+           universities = University.query.all()
+           return jsonify({"universities":[{
+              "university_id": uni.id,
+              "university_name": uni.name
+              } for uni in universities]}), 200
+    #there should be some link in the frontend for the frontend to query the database for the university ID's to put in this route
     # if current_user.is_authenticated: Have react check this instead and do conditional routing
     #     return redirect(url_for('videos.index'))
     data = request.get_json(silent=True)
@@ -44,7 +57,7 @@ def register():
     level = data.get('level')
     university_id = data.get('university_id')
 
-    
+
 
     if not data:
       return jsonify({"error": "Invalid or missing JSON body"}), 400
@@ -59,6 +72,7 @@ def register():
     
 
     if User.query.filter_by(email=email).first():
+        print("already registered")
         return jsonify({'error': 'email has already been registered'}), 409
 
     if register_form.validate_on_submit():
@@ -108,9 +122,11 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if not user:
+        print("No account found with that email.")
         return jsonify({"error": "No account found with that email."}), 401
     
     if not check_password_hash(user.password_hash, password):
+        print("Incorrect password. Please try again.")
         return jsonify({"error": "Incorrect password. Please try again."}), 401
 
     if login_form.validate_on_submit():

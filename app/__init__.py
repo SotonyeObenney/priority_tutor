@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from config import Config
 from .extensions import db, login_manager, migrate, cors
 
@@ -16,6 +16,9 @@ def create_app(config_class=Config):
 
 
     login_manager.init_app(app)
+    @login_manager.unauthorized_handler
+    def unauthorized():
+      return jsonify({"error": "Unauthorized", "message": "Login required"}), 401
     from .users import users as users_blueprint
     from .auth import auth as auth_blueprint
     from .videos import videos as videos_blueprint
@@ -29,5 +32,6 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
     app.register_blueprint(home_blueprint)
     app.register_blueprint(users_blueprint, url_prefix='/users')
+
 
     return app
