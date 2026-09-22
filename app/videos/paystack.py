@@ -50,6 +50,7 @@ def verify_transaction(reference):
 def record_purchase(student_id, video_id, amount, reference, db_object):
     existing = Purchase.query.filter_by(student_id=student_id, video_id=video_id).first()
     if existing:
+        print("The purchase already exists")
         return "OK", 200
     new_purchase = Purchase(
                        student_id=student_id,
@@ -59,5 +60,7 @@ def record_purchase(student_id, video_id, amount, reference, db_object):
                    )
     db_object.session.add(new_purchase)
     db_object.session.commit()
+    print("Purchase made")
     return "OK", 200
+
    

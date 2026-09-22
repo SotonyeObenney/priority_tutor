@@ -10,6 +10,7 @@ class Config:
     WTF_CSRF_ENABLED = False
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
+    FRONTEND_BASE_URL = "http://localhost:5173/"
 
 
 class TestConfig(Config):

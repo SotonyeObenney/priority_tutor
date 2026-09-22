@@ -58,6 +58,7 @@ def apply():
         return jsonify({'error': 'You are already registered as a tutor'}),403
 
     data = request.get_json(silent=True)
+    print(data)
     bio = data.get("bio")
     courses = data.get("courses")
     
@@ -95,13 +96,15 @@ def dashboard():
     for video in all_videos:
       total_reviews += len(video.reviews)
     return jsonify({
+      'video_count': len(all_videos),
       'amount_paid': amount_paid,
-      'total_views': total_views,
-      'total_reviews': total_reviews,
+      'total_view_count': total_views,
+      'review_count': total_reviews,
       'tutor_videos' : [{
                           'id' : v.id,
                           'title': v.title,
-                          'course_code': v.course_code
+                          'course_code': v.course_code,
+                          'views': v.view_count
                         } for v in all_videos]
        }), 200
 

@@ -99,7 +99,6 @@ def show_video(video_id):
 
     current_video.view_count += 1
     db.session.commit()
-    print(current_video.reviews)
     return jsonify({'message': message, 'video': {
        'access': video_access,
         'id': current_video.id,
@@ -141,7 +140,7 @@ def upload_video():
       description = data.get('description')
       youtube_url = data.get('youtube_url')
       price = data.get('price')
-      is_free = data.get('is_free') == 'True'
+      is_free = data.get('is_free')
       #is free should cancel out price from getting filled
       
       new_video = Video(
@@ -214,7 +213,10 @@ def buy(video_id):
     amount = float(current_video.price)
     amount *= 100
     email = current_user.email
-    callback_url = url_for('videos.show_video', video_id=video_id)
+    FRONTEND_BASE_URL = current_app.config['FRONTEND_BASE_URL']
+
+    callback_url = f"{FRONTEND_BASE_URL}videos/show_video/{current_video.id}"
+    url_for('videos.show_video', video_id=video_id)
     metadata = {"video_id": video_id,
                 "student_id": current_user.id
                 }
@@ -231,19 +233,24 @@ def buy(video_id):
 
 
 @videos.route('/payment/callback', methods=["GET"])
-@login_required
+# @login_required
 def payment_callback():
   reference = request.args.get("reference")
   data = verify_transaction(reference)
+  FRONTEND_BASE_URL = current_app.config['FRONTEND_BASE_URL']
 
   if not data or not data.get('data') or data['data'].get('status') != 'success':
     flash('Payment could not be verified. Please try again.')
-    return redirect(url_for('videos.index'))
-
+    return redirect(f"{FRONTEND_BASE_URL}videos?error=payment_failed")
+  
   
   video_id = data['data']['metadata']['video_id']
   flash("Payment received! We're confirming it now — this can take a few seconds.")
-  return redirect(url_for('videos.show_video', video_id=video_id))#This will connect with my react front end
+  
+  # callback_url = url_for('videos.payment_callback', _external=True)
+  redirect_url = f"{FRONTEND_BASE_URL}videos/{video_id}"
+  return redirect(redirect_url)#This will connect with my react front end
+
 
 
 
@@ -252,7 +259,7 @@ def handle_paystack_webhook():
     PAYSTACK_API_TEST_SKEY = current_app.config["PAYSTACK_API_TEST_SKEY"]   
     paystack_signature = request.headers.get('x-paystack-signature')
     if not paystack_signature:
-        abort(401)
+      abort(401)
 
 
     raw_payload = request.get_data()
@@ -263,7 +270,6 @@ def handle_paystack_webhook():
     ).hexdigest()
 
     if hmac.compare_digest(computed_hash, paystack_signature):
-
       payload = request.get_json()
       reference = payload['data']['reference']
       
