@@ -229,6 +229,7 @@ def buy(video_id):
                       }), 200
 
     else:
+      print(auth_url)
       return jsonify({'message': "Payment Initialization failed"}), 500
 
 
