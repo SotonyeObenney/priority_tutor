@@ -78,7 +78,10 @@ def show_video(video_id):
     current_video = Video.query.get_or_404(video_id)
     current_video_url = current_video.youtube_url
     VIDEO_ID = extract_video_id(current_video_url)
-    
+    if Review.query.filter_by(video_id=video_id, student_id=current_user.id).first():
+      has_review = True
+    else:
+      has_review = False
     video_access, owner, message = can_access_video(current_user, current_video)
     if not video_access:
       return jsonify({"error": "You must buy this video to watch it", 'video': {
@@ -99,7 +102,8 @@ def show_video(video_id):
 
     current_video.view_count += 1
     db.session.commit()
-    return jsonify({'message': message, 'video': {
+    return jsonify({'message': message, 
+                    'video': {
        'access': video_access,
         'id': current_video.id,
         'is_owner': owner,
@@ -108,11 +112,12 @@ def show_video(video_id):
         'course_code': current_video.course_code,
         'description': current_video.description,
         'tutor' : current_video.tutor.user.full_name,
+        'has_review': has_review,
         'VIDEO_ID': VIDEO_ID,
         'reviews': [{'id':r.id, 
                      'rating':r.rating, 
                      'comment':r.comment,
-                     'name': r.student.full_name
+                     'full_name': r.student.full_name
                      } for r in current_video.reviews]
     }
        }), 200

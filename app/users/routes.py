@@ -36,7 +36,7 @@ def profile():
               'comment': r.comment,
               'rating': r.rating,
               'review_id': r.id,
-              'video_id': r.id,
+              'video_id': r.video.id,
               'created_at': r.created_at
            } for r in current_user.reviews]
 
@@ -44,7 +44,15 @@ def profile():
 
        }), 200
 
+def avatar_path(filename):
+    return os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
 
+def remove_avatar_file(filename):
+    if not filename:
+      return
+    path = avatar_path(filename)
+    if os.path.exists(path):
+      os.remove(path)
     
 @users.route('/upload_avatar', methods=["POST"])
 @login_required
@@ -53,16 +61,32 @@ def upload_avatar():
     file = request.files.get('avatar')
     if avatar_form.validate_on_submit():
       if file:
+        old_filename = current_user.avatar_filename
         extension = file.filename.rsplit('.',1)[1].lower()
         filename = uuid.uuid4().hex + '.' + extension
-        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        file.save(avatar_path(filename))
         current_user.avatar_filename = filename
-
         db.session.commit()
+        remove_avatar_file(old_filename)
         return jsonify({'message':'Upload Successful'}), 201
       
-      else:
-        return jsonify({'error':avatar_form.errors}), 400
+    else:
+      return jsonify({'error':avatar_form.errors}), 400
+
+#delete profile pic
+@users.route('/delete_avatar', methods=['DELETE'])
+@login_required
+def delete_avatar():
+  if not current_user.avatar_filename:
+    return jsonify({'error':'No file to delete'}), 400 
+  
+  
+  filename = current_user.avatar_filename 
+  print(filename)
+  remove_avatar_file(filename)
+  current_user.avatar_filename = None
+  db.session.commit()
+  return jsonify({'message':'Deletion Successful'}), 200   
 
 
 
