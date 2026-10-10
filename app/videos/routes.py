@@ -117,7 +117,8 @@ def show_video(video_id):
         'reviews': [{'id':r.id, 
                      'rating':r.rating, 
                      'comment':r.comment,
-                     'full_name': r.student.full_name
+                     'full_name': r.student.full_name,
+                     'avatar_filename':r.student.avatar_filename
                      } for r in current_video.reviews]
     }
        }), 200

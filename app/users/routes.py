@@ -7,6 +7,7 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 from ..models import TutorProfile, User
 from flask import Blueprint
 from ..extensions import db
+from flask import Flask, send_from_directory
 
 #for file handling
 import uuid
@@ -88,7 +89,10 @@ def delete_avatar():
   db.session.commit()
   return jsonify({'message':'Deletion Successful'}), 200   
 
-
-
+#Points to a users avatar on the server
+@users.route('/get_avatar/<filename>')
+def get_avatar(filename):
+    print(avatar_path(filename))
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'],filename)
 
 #A way to delete files after they have been re-uploaded to avoid disc usage
