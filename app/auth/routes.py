@@ -29,7 +29,7 @@ class RegisterForm(FlaskForm):
 @login_required
 def me():
     return jsonify({
-              "user": {"id": current_user.id, "email": current_user.email, "full_name": current_user.full_name, "is_tutor": current_user.is_tutor, "university": current_user.university.name, "avatar_filename": current_user.avatar_filename}
+              "user": {"id": current_user.id, "email": current_user.email, "full_name": current_user.full_name, "is_tutor": current_user.is_tutor, "is_admin":current_user.is_admin, "university": current_user.university.name, "avatar_filename": current_user.avatar_filename}
           }), 200 
    
 
