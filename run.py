@@ -1,7 +1,7 @@
 from app import create_app
 import os
-cert_path = os.path.join(os.path.dirname(__file__), "localhost+1.pem")
-key_path = os.path.join(os.path.dirname(__file__), "localhost+1-key.pem")
+cert_path = os.path.join(os.path.dirname(__file__), "localhost.pem")
+key_path = os.path.join(os.path.dirname(__file__), "localhostkey.pem")
 
 
 app = create_app()
